@@ -1,12 +1,29 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
 
 describe('Lab 02 - Attachment Lifecycle API Tests', () => {
+  let testTicketId: number;
+
+  beforeAll(async () => {
+    // Create a fresh test ticket for attachment lifecycle tests
+    const ticketRes = await request(app)
+      .post('/api/tickets')
+      .set('X-Requester-Id', '1')
+      .send({
+        categoryId: 1,
+        relatedSystemId: 1,
+        summary: 'Attachment test target ticket',
+        description: 'Dedicated ticket created for attachment unit testing scenarios.',
+        requestedPriority: 'LOW',
+      });
+    testTicketId = ticketRes.body.id;
+  });
+
   it('should upload a valid PNG attachment to owned ticket', async () => {
     const buffer = Buffer.from('fake image binary content');
     const response = await request(app)
-      .post('/api/tickets/1/attachments')
+      .post(`/api/tickets/${testTicketId}/attachments`)
       .set('X-Requester-Id', '1')
       .attach('file', buffer, 'test_screenshot.png');
 
@@ -19,7 +36,7 @@ describe('Lab 02 - Attachment Lifecycle API Tests', () => {
   it('should reject non-permitted attachment file types (.txt)', async () => {
     const buffer = Buffer.from('plain text content');
     const response = await request(app)
-      .post('/api/tickets/1/attachments')
+      .post(`/api/tickets/${testTicketId}/attachments`)
       .set('X-Requester-Id', '1')
       .attach('file', buffer, 'unsupported_document.txt');
 
@@ -31,7 +48,7 @@ describe('Lab 02 - Attachment Lifecycle API Tests', () => {
     // 1. Upload a fresh active attachment first
     const buffer = Buffer.from('fresh active file content');
     const uploadRes = await request(app)
-      .post('/api/tickets/1/attachments')
+      .post(`/api/tickets/${testTicketId}/attachments`)
       .set('X-Requester-Id', '1')
       .attach('file', buffer, 'fresh_active.pdf');
 
