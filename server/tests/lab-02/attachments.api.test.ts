@@ -28,9 +28,19 @@ describe('Lab 02 - Attachment Lifecycle API Tests', () => {
   });
 
   it('should soft-remove an active attachment with reason', async () => {
-    // Attachment 1 is active in seed data for Ticket 1
+    // 1. Upload a fresh active attachment first
+    const buffer = Buffer.from('fresh active file content');
+    const uploadRes = await request(app)
+      .post('/api/tickets/1/attachments')
+      .set('X-Requester-Id', '1')
+      .attach('file', buffer, 'fresh_active.pdf');
+
+    expect(uploadRes.status).toBe(201);
+    const attachmentId = uploadRes.body.id;
+
+    // 2. Soft-remove the uploaded attachment
     const response = await request(app)
-      .patch('/api/attachments/1/soft-remove')
+      .patch(`/api/attachments/${attachmentId}/soft-remove`)
       .set('X-Requester-Id', '1')
       .send({ reason: 'File replaced with updated version' });
 
