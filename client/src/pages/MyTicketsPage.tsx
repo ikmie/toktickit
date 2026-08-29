@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRequester } from '../context/RequesterContext';
+import { API_BASE_URL } from '../config/api';
 
 interface TicketItem {
   id: number;
@@ -42,7 +43,7 @@ export const MyTicketsPage: React.FC<MyTicketsPageProps> = ({ onSelectTicket, on
 
   // Load Categories for Filter Dropdown
   useEffect(() => {
-    fetch('http://localhost:5000/api/categories')
+    fetch(`${API_BASE_URL}/api/categories`)
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch(() => {});
@@ -64,7 +65,7 @@ export const MyTicketsPage: React.FC<MyTicketsPageProps> = ({ onSelectTicket, on
       params.append('page', page.toString());
       params.append('limit', '5');
 
-      const response = await fetch(`http://localhost:5000/api/tickets?${params.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tickets?${params.toString()}`, {
         headers: {
           'X-Requester-Id': selectedRequester.id.toString(),
         },

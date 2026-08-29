@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRequester } from '../context/RequesterContext';
+import { API_BASE_URL } from '../config/api';
 
 interface AttachmentItem {
   id: number;
@@ -59,7 +60,7 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/tickets/${ticketId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}`, {
         headers: {
           'X-Requester-Id': selectedRequester.id.toString(),
         },
@@ -88,7 +89,7 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
   const handleDownload = (attachmentId: number) => {
     if (!selectedRequester) return;
     window.open(
-      `http://localhost:5000/api/attachments/${attachmentId}/download?requesterId=${selectedRequester.id}`,
+      `${API_BASE_URL}/api/attachments/${attachmentId}/download?requesterId=${selectedRequester.id}`,
       '_blank'
     );
   };
@@ -106,7 +107,7 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/attachments/${removeAttachmentId}/soft-remove`,
+        `${API_BASE_URL}/api/attachments/${removeAttachmentId}/soft-remove`,
         {
           method: 'PATCH',
           headers: {
@@ -156,7 +157,7 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
       formData.append('file', uploadFile);
 
       const response = await fetch(
-        `http://localhost:5000/api/tickets/${ticketId}/attachments`,
+        `${API_BASE_URL}/api/tickets/${ticketId}/attachments`,
         {
           method: 'POST',
           headers: {

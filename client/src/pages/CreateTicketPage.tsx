@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRequester } from '../context/RequesterContext';
+import { API_BASE_URL } from '../config/api';
 
 interface Category {
   id: number;
@@ -41,8 +42,8 @@ export const CreateTicketPage: React.FC<CreateTicketPageProps> = ({ onSuccess, o
       setLoadingRefs(true);
       try {
         const [catRes, sysRes] = await Promise.all([
-          fetch('http://localhost:5000/api/categories'),
-          fetch('http://localhost:5000/api/related-systems'),
+          fetch(`${API_BASE_URL}/api/categories`),
+          fetch(`${API_BASE_URL}/api/related-systems`),
         ]);
 
         if (catRes.ok && sysRes.ok) {
@@ -133,7 +134,7 @@ export const CreateTicketPage: React.FC<CreateTicketPageProps> = ({ onSuccess, o
 
     try {
       // 1. Post Ticket
-      const response = await fetch('http://localhost:5000/api/tickets', {
+      const response = await fetch(`${API_BASE_URL}/api/tickets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +164,7 @@ export const CreateTicketPage: React.FC<CreateTicketPageProps> = ({ onSuccess, o
           const formData = new FormData();
           formData.append('file', file);
 
-          await fetch(`http://localhost:5000/api/tickets/${ticketId}/attachments`, {
+          await fetch(`${API_BASE_URL}/api/tickets/${ticketId}/attachments`, {
             method: 'POST',
             headers: {
               'X-Requester-Id': selectedRequester ? selectedRequester.id.toString() : '1',

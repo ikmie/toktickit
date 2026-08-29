@@ -6,29 +6,29 @@ export async function generateTicketNumber(): Promise<string> {
   const currentYear = new Date().getFullYear();
   const prefix = `TKT-${currentYear}-`;
 
-  // Find highest existing ticket number for current year
-  const latestTicket = await prisma.ticket.findFirst({
+  const tickets = await prisma.ticket.findMany({
     where: {
       ticketNumber: {
         startsWith: prefix,
       },
     },
-    orderBy: {
-      ticketNumber: 'desc',
+    select: {
+      ticketNumber: true,
     },
   });
 
-  let nextSequence = 1;
-  if (latestTicket) {
-    const parts = latestTicket.ticketNumber.split('-');
+  let maxSeq = 0;
+  for (const t of tickets) {
+    const parts = t.ticketNumber.split('-');
     if (parts.length === 3) {
-      const parsedSeq = parseInt(parts[2], 10);
-      if (!isNaN(parsedSeq)) {
-        nextSequence = parsedSeq + 1;
+      const seq = parseInt(parts[2], 10);
+      if (!isNaN(seq) && seq > maxSeq) {
+        maxSeq = seq;
       }
     }
   }
 
+  const nextSequence = maxSeq + 1;
   const paddedSequence = nextSequence.toString().padStart(6, '0');
   return `${prefix}${paddedSequence}`;
 }
