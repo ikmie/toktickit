@@ -3,12 +3,77 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model RequesterUser {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  department String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  tickets    Ticket[]
 }
 
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model RelatedSystem {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  code      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model Ticket {
+  id                Int           @id @default(autoincrement())
+  ticketNumber      String        @unique
+  requesterId       Int
+  categoryId        Int
+  relatedSystemId   Int
+  summary           String
+  description       String
+  requestedPriority String        // LOW, MEDIUM, HIGH, URGENT
+  itPriority        String        @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  currentStatus     String        @default("NEW") // NEW, OPEN, IN_PROGRESS, PENDING, RESOLVED, CLOSED
+  ticketDate        DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  requester     RequesterUser @relation(fields: [requesterId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id])
+  relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
+  attachments   Attachment[]
+
+  @@index([requesterId])
+  @@index([ticketNumber])
+  @@index([currentStatus])
+  @@index([categoryId])
+  @@index([requestedPriority])
+  @@index([ticketDate])
+}
+
+model Attachment {
+  id            Int       @id @default(autoincrement())
+  ticketId      Int
+  filename      String
+  originalName  String
+  mimeType      String
+  fileSize      Int
+  storagePath   String
+  isRemoved     Boolean   @default(false)
+  removedAt     DateTime?
+  removedReason String?
+  uploadedAt    DateTime  @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
 }

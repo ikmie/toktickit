@@ -1,16 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import requestersRouter from './routes/requesters';
+import relatedSystemsRouter from './routes/relatedSystems';
+import ticketsRouter from './routes/tickets';
 
 const app = express();
 const prisma = new PrismaClient();
-
-const DEFAULT_CATEGORIES = [
-  { id: 1, name: 'Account and Access' },
-  { id: 2, name: 'Hardware' },
-  { id: 3, name: 'Software' },
-  { id: 4, name: 'Network' },
-];
 
 app.use(cors());
 app.use(express.json());
@@ -25,13 +21,15 @@ app.get('/api/categories', async (_req, res) => {
       orderBy: { id: 'asc' },
       select: { id: true, name: true },
     });
-    if (categories.length > 0) {
-      return res.status(200).json(categories);
-    }
-    return res.status(200).json(DEFAULT_CATEGORIES);
-  } catch {
-    return res.status(200).json(DEFAULT_CATEGORIES);
+    return res.status(200).json(categories);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return res.status(500).json({ error: 'Failed to fetch categories' });
   }
 });
+
+app.use('/api/requesters', requestersRouter);
+app.use('/api/related-systems', relatedSystemsRouter);
+app.use('/api/tickets', ticketsRouter);
 
 export default app;
