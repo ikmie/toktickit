@@ -23,4 +23,4 @@
 ---
 
 ## 3. My Reflection
-Using an AI coding agent with Spec-Driven Development accelerated the construction of a full-stack ticketing MVP while ensuring strict architectural quality. By defining explicit engineering contracts (`specification.md`, `api-spec.md`, `ui-spec.md`, `tests.md`) before writing production code, the AI agent maintained exact conformance with business rules such as system-generated ticket numbers, attachment soft-removal rules, and requester ownership isolation. Test-driven verification ensured that boundary cases—such as oversized attachments or unauthorized cross-requester queries—were caught and handled safely.
+After i have use an AI coding agent with Spec-Driven Development to help me with a full-stack ticketing MVP while making sure the architectural quality. By defining explicit engineering contracts before starting (`specification.md`, `api-spec.md`, `ui-spec.md`, `tests.md`) to let AI agent maintained exact conformance with business rules as defined.
