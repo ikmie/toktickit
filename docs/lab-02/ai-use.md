@@ -1,9 +1,9 @@
 # AI Use Log and Reflection - Lab 02
 
 ## 1. AI Tool & Model Overview
-- **AI Agent / Assistant**: Antigravity AI Coding Assistant (Google DeepMind)
+- **AI Agent / Assistant**: Antigravity 
 - **Model Used**: Gemini 3.6 Flash (High)
-- **Workflow Methodology**: Spec-Driven Development (SDD) & Test-Driven Development (TDD)
+- **Workflow Methodology**: Spec-Driven  & Test-Driven Development
 
 ---
 
