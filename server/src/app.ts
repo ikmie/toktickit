@@ -6,6 +6,7 @@ import relatedSystemsRouter from './routes/relatedSystems';
 import ticketsRouter from './routes/tickets';
 import attachmentsRouter from './routes/attachments';
 import authRouter from './routes/auth';
+import staffRouter from './routes/staff';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -34,6 +35,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/requesters', requestersRouter);
 app.use('/api/related-systems', relatedSystemsRouter);
 app.use('/api/tickets', ticketsRouter);
+app.use('/api/staff', staffRouter);
 app.use('/api', attachmentsRouter);
 
 export default app;
