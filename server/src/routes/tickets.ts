@@ -32,7 +32,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Check requester exists and is active
-    const requester = await prisma.requesterUser.findFirst({
+    const requester = await prisma.user.findFirst({
       where: { id: requesterId, isActive: true },
     });
     if (!requester) {
