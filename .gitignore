@@ -28,3 +28,6 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Test uploads
+server/uploads/attachment-[0-9]*
