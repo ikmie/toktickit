@@ -10,6 +10,7 @@ import { CreateTicketPage } from './pages/CreateTicketPage';
 import { TicketDetailPage } from './pages/TicketDetailPage';
 import { StaffTicketQueuePage } from './pages/StaffTicketQueuePage';
 import { StaffTicketDetailPage } from './pages/StaffTicketDetailPage';
+import { UserManagementPage } from './pages/UserManagementPage';
 
 function AppContent() {
   const { user, isAuthenticated, mustChangePassword } = useAuth();
@@ -111,6 +112,8 @@ function AppContent() {
             }}
           />
         )}
+
+        {activeTab === 'user-management' && <UserManagementPage />}
       </main>
 
       {/* Simple Zen Green Footer */}
