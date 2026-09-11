@@ -21,12 +21,24 @@ interface TicketDetail {
   requestedPriority: string;
   itPriority: string;
   currentStatus: string;
+  problemResolvedIndicated?: boolean;
   ticketDate: string;
   updatedAt: string;
   category: { id: number; name: string };
   relatedSystem: { id: number; name: string; code: string };
   requester: { id: number; name: string; email: string; department: string };
   attachments: AttachmentItem[];
+}
+
+interface CommentItem {
+  id: number;
+  content: string;
+  createdAt: string;
+  author: {
+    id: number;
+    name: string;
+    role: string;
+  };
 }
 
 interface TicketDetailPageProps {
@@ -53,6 +65,25 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
 
+  // Comments & Problem Resolution state
+  const [comments, setComments] = useState<CommentItem[]>([]);
+  const [commentText, setCommentText] = useState('');
+  const [postingComment, setPostingComment] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [indicatingResolved, setIndicatingResolved] = useState(false);
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    const token = localStorage.getItem('toktickit_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (selectedRequester) {
+      headers['X-Requester-Id'] = selectedRequester.id.toString();
+    }
+    return headers;
+  };
+
   const fetchTicketDetail = async () => {
     if (!selectedRequester) return;
 
@@ -61,9 +92,7 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}`, {
-        headers: {
-          'X-Requester-Id': selectedRequester.id.toString(),
-        },
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -82,9 +111,71 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
     }
   };
 
+  const fetchComments = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}/comments`, {
+        headers: getAuthHeaders(),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data);
+      }
+    } catch (_err) {
+      // Non-blocking
+    }
+  };
+
   useEffect(() => {
     fetchTicketDetail();
+    fetchComments();
   }, [ticketId, selectedRequester]);
+
+  const handleIndicateResolved = async () => {
+    setIndicatingResolved(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}/resolve-indication`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+      if (response.ok) {
+        setTicket((prev) => (prev ? { ...prev, problemResolvedIndicated: true } : null));
+      }
+    } catch (err) {
+      console.error('Error indicating resolved:', err);
+    } finally {
+      setIndicatingResolved(false);
+    }
+  };
+
+  const handlePostComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+
+    setPostingComment(true);
+    setCommentError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ content: commentText.trim() }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        setCommentError(errData.message || 'Failed to post comment.');
+      } else {
+        setCommentText('');
+        fetchComments();
+      }
+    } catch (_e) {
+      setCommentError('Connection error while posting comment.');
+    } finally {
+      setPostingComment(false);
+    }
+  };
 
   const handleDownload = (attachmentId: number) => {
     if (!selectedRequester) return;
@@ -244,7 +335,6 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
   }
 
   const activeAttachments = ticket.attachments.filter((a) => !a.isRemoved);
-  const removedAttachments = ticket.attachments.filter((a) => a.isRemoved);
 
   return (
     <div className="container py-4">
@@ -288,13 +378,38 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
             </p>
           </div>
 
-          <div className="d-flex gap-2 mt-2 mt-sm-0">
+          <div className="d-flex flex-wrap gap-2 mt-2 mt-sm-0 align-items-center">
             <span className={`badge ${getPriorityBadgeClass(ticket.requestedPriority)} px-3 py-2 fs-6`}>
               Req. Priority: {ticket.requestedPriority}
             </span>
             <span className={`badge ${getPriorityBadgeClass(ticket.itPriority)} px-3 py-2 fs-6`}>
               IT Priority: {ticket.itPriority}
             </span>
+            {ticket.problemResolvedIndicated ? (
+              <span className="badge bg-success px-3 py-2 fs-6 d-flex align-items-center gap-1" data-testid="resolved-indicated-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Resolution Indicated
+              </span>
+            ) : (
+              ticket.currentStatus !== 'RESOLVED' &&
+              ticket.currentStatus !== 'CLOSED' && (
+                <button
+                  type="button"
+                  onClick={handleIndicateResolved}
+                  className="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
+                  disabled={indicatingResolved}
+                  data-testid="indicate-resolved-btn"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  {indicatingResolved ? 'Reporting...' : 'Problem Appears Resolved'}
+                </button>
+              )
+            )}
           </div>
         </div>
 
@@ -440,6 +555,97 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
             </ul>
           )}
         </div>
+      </div>
+
+      {/* Public Comments Section */}
+      <div className="surface-card p-4 mb-4" data-testid="public-comments-section">
+        <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+          <h3 className="h5 fw-bold mb-0" style={{ color: 'var(--primary-green, #006B3C)' }}>
+            Public Comments ({comments.length})
+          </h3>
+          <span className="badge bg-light text-success border">Shared with IT Staff</span>
+        </div>
+
+        {/* Comments Conversation Thread */}
+        {comments.length === 0 ? (
+          <div className="text-center py-4 text-muted small bg-light rounded mb-3">
+            No public comments on this ticket yet. Add a message below to communicate with IT Staff.
+          </div>
+        ) : (
+          <div className="d-flex flex-column gap-3 mb-4">
+            {comments.map((c) => {
+              const isStaff = c.author.role === 'IT_STAFF' || c.author.role === 'ADMIN';
+              return (
+                <div
+                  key={c.id}
+                  className={`p-3 rounded border ${isStaff ? 'bg-white border-start border-success border-3' : 'bg-light'}`}
+                  style={{ borderRadius: '8px' }}
+                >
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="fw-semibold small text-dark">{c.author.name}</span>
+                      <span
+                        className={`badge ${
+                          c.author.role === 'ADMIN'
+                            ? 'bg-purple text-dark'
+                            : isStaff
+                            ? 'bg-info text-dark'
+                            : 'bg-light text-success border'
+                        }`}
+                        style={{ fontSize: '0.7rem' }}
+                      >
+                        {c.author.role === 'ADMIN' ? 'Administrator' : isStaff ? 'IT Staff' : 'Requester'}
+                      </span>
+                    </div>
+                    <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                      {new Date(c.createdAt).toLocaleString('en-US', {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                      })}
+                    </span>
+                  </div>
+                  <div className="text-dark small" style={{ whiteSpace: 'pre-wrap' }}>
+                    {c.content}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Post New Comment Form */}
+        <form onSubmit={handlePostComment}>
+          {commentError && (
+            <div className="alert alert-danger py-1 px-2 small mb-2">{commentError}</div>
+          )}
+          <div className="mb-2">
+            <textarea
+              className="form-control"
+              rows={3}
+              placeholder="Type your public comment or update here..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              disabled={postingComment}
+              maxLength={2000}
+              required
+              data-testid="comment-input"
+            />
+            <div className="text-end text-muted small mt-1" style={{ fontSize: '0.75rem' }}>
+              {commentText.length}/2000 characters
+            </div>
+          </div>
+          <div className="d-flex justify-content-end">
+            <button
+              type="submit"
+              className="btn btn-sm text-white px-3 fw-semibold"
+              style={{ backgroundColor: 'var(--primary-green, #006B3C)' }}
+              disabled={postingComment || !commentText.trim()}
+              data-testid="post-comment-btn"
+            >
+              {postingComment ? 'Posting...' : 'Post Comment'}
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Soft Remove Reason Modal */}
