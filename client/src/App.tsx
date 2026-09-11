@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { RequesterProvider } from './context/RequesterContext';
 import { Header, type AppNavTab } from './components/Header';
@@ -8,11 +8,28 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { MyTicketsPage } from './pages/MyTicketsPage';
 import { CreateTicketPage } from './pages/CreateTicketPage';
 import { TicketDetailPage } from './pages/TicketDetailPage';
+import { StaffTicketQueuePage } from './pages/StaffTicketQueuePage';
+import { StaffTicketDetailPage } from './pages/StaffTicketDetailPage';
 
 function AppContent() {
-  const { isAuthenticated, mustChangePassword } = useAuth();
-  const [activeTab, setActiveTab] = useState<AppNavTab>('my-tickets');
+  const { user, isAuthenticated, mustChangePassword } = useAuth();
+  const [activeTab, setActiveTab] = useState<AppNavTab>(() => {
+    if (user?.role === 'IT_STAFF') return 'staff-queue';
+    if (user?.role === 'ADMIN') return 'user-management';
+    return 'my-tickets';
+  });
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+
+  // Synchronize default tab on role changes
+  useEffect(() => {
+    if (user?.role === 'IT_STAFF') {
+      setActiveTab('staff-queue');
+    } else if (user?.role === 'ADMIN') {
+      setActiveTab('user-management');
+    } else if (user?.role === 'REQUESTER') {
+      setActiveTab('my-tickets');
+    }
+  }, [user?.role]);
 
   // If user is not authenticated, render LoginPage
   if (!isAuthenticated) {
@@ -29,6 +46,11 @@ function AppContent() {
     setActiveTab('ticket-detail');
   };
 
+  const handleSelectStaffTicket = (id: number) => {
+    setSelectedTicketId(id);
+    setActiveTab('staff-ticket-detail');
+  };
+
   const handleTicketCreated = (id: number) => {
     setSelectedTicketId(id);
     setActiveTab('ticket-detail');
@@ -41,7 +63,9 @@ function AppContent() {
         activeTab={activeTab}
         setActiveTab={(tab) => {
           setActiveTab(tab);
-          if (tab === 'my-tickets' || tab === 'staff-queue') setSelectedTicketId(null);
+          if (tab === 'my-tickets' || tab === 'staff-queue' || tab === 'user-management') {
+            setSelectedTicketId(null);
+          }
         }}
       />
 
@@ -69,6 +93,20 @@ function AppContent() {
             ticketId={selectedTicketId}
             onBack={() => {
               setActiveTab('my-tickets');
+              setSelectedTicketId(null);
+            }}
+          />
+        )}
+
+        {activeTab === 'staff-queue' && (
+          <StaffTicketQueuePage onSelectTicket={handleSelectStaffTicket} />
+        )}
+
+        {activeTab === 'staff-ticket-detail' && selectedTicketId !== null && (
+          <StaffTicketDetailPage
+            ticketId={selectedTicketId}
+            onBack={() => {
+              setActiveTab('staff-queue');
               setSelectedTicketId(null);
             }}
           />
