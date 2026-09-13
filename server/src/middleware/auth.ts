@@ -23,6 +23,40 @@ declare global {
 }
 
 /**
+ * Optional authentication middleware: if Bearer token present, extracts user.
+ * If not present or invalid, proceeds without setting req.user.
+ */
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const payload = verifyToken(token);
+      if (payload) {
+        const user = await prisma.user.findUnique({
+          where: { id: payload.id },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            isActive: true,
+            mustChangePassword: true,
+            department: true,
+          },
+        });
+        if (user && user.isActive) {
+          req.user = user;
+        }
+      }
+    }
+  } catch (_e) {
+    // Proceed without req.user
+  }
+  next();
+}
+
+/**
  * Extracts Bearer token, verifies JWT, and validates that user is active in DB.
  */
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
