@@ -5,6 +5,7 @@ import requestersRouter from './routes/requesters';
 import relatedSystemsRouter from './routes/relatedSystems';
 import ticketsRouter from './routes/tickets';
 import attachmentsRouter from './routes/attachments';
+import authRouter from './routes/auth';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -29,6 +30,7 @@ app.get('/api/categories', async (_req, res) => {
   }
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/requesters', requestersRouter);
 app.use('/api/related-systems', relatedSystemsRouter);
 app.use('/api/tickets', ticketsRouter);
