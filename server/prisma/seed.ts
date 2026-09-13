@@ -1,8 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const defaultPasswordHash = bcrypt.hashSync('Password123!', 10);
+  const initialPasswordHash = bcrypt.hashSync('Initial123!', 10);
+
   // 1. Seed Categories
   const categories = [
     { id: 1, name: 'Account and Access' },
@@ -38,133 +42,475 @@ async function main() {
     });
   }
 
-  // 3. Seed Development Requesters
-  const requesters = [
+  // 3. Seed Users (Requesters, IT Staff, Administrators)
+  const users = [
+    // Requesters (Active >= 4, Inactive >= 1)
     {
       id: 1,
-      name: 'Jennifer Anderson',
-      email: 'jennifer.a@kmutt.ac.th',
+      name: 'Supanut Sopha',
+      email: 'supanut.soph@kmutt.ac.th',
+      passwordHash: defaultPasswordHash,
+      role: 'REQUESTER',
       department: 'Computer Engineering',
       isActive: true,
+      mustChangePassword: false,
     },
     {
       id: 2,
-      name: 'Michael Brown',
-      email: 'michael.b@kmutt.ac.th',
+      name: 'Ikmie ikumii',
+      email: 'ikumii.team@kmutt.ac.th',
+      passwordHash: defaultPasswordHash,
+      role: 'REQUESTER',
       department: 'IT Support',
       isActive: true,
+      mustChangePassword: false,
     },
     {
       id: 3,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@kmutt.ac.th',
-      department: 'Electrical Engineering',
+      name: 'Wichitchai Suwanno',
+      email: 'wichitchai.suwa@kmutt.ac.th',
+      passwordHash: defaultPasswordHash,
+      role: 'REQUESTER',
+      department: 'Computer Engineering',
       isActive: true,
+      mustChangePassword: false,
     },
     {
       id: 4,
-      name: 'David Lee',
-      email: 'david.l@kmutt.ac.th',
+      name: 'Zeleng Zuling',
+      email: 'Yar.Zeleng@kmutt.ac.th',
+      passwordHash: defaultPasswordHash,
+      role: 'REQUESTER',
       department: 'Mechanical Engineering',
       isActive: true,
+      mustChangePassword: false,
     },
     {
       id: 5,
-      name: 'Robert Taylor (Inactive)',
-      email: 'robert.t@kmutt.ac.th',
+      name: 'Jennifer Anderson',
+      email: 'jennifer.a@kmutt.ac.th',
+      passwordHash: defaultPasswordHash,
+      role: 'REQUESTER',
+      department: 'Faculty of Science',
+      isActive: true,
+      mustChangePassword: false,
+    },
+    {
+      id: 6,
+      name: 'Mai wai laeww',
+      email: 'mwl@kmutt.ac.th',
+      passwordHash: defaultPasswordHash,
+      role: 'REQUESTER',
       department: 'Civil Engineering',
       isActive: false,
+      mustChangePassword: false,
+    },
+
+    // IT Staff (Active >= 3, Inactive >= 1, First-login user)
+    {
+      id: 7,
+      name: 'Michael Brown',
+      email: 'michael.b@toktickit.com',
+      passwordHash: defaultPasswordHash,
+      role: 'IT_STAFF',
+      department: 'IT Operations',
+      isActive: true,
+      mustChangePassword: false,
+    },
+    {
+      id: 8,
+      name: 'Sarah Johnson',
+      email: 'sarah.j@toktickit.com',
+      passwordHash: defaultPasswordHash,
+      role: 'IT_STAFF',
+      department: 'Network Operations',
+      isActive: true,
+      mustChangePassword: false,
+    },
+    {
+      id: 9,
+      name: 'David Lee',
+      email: 'david.l@toktickit.com',
+      passwordHash: defaultPasswordHash,
+      role: 'IT_STAFF',
+      department: 'Desktop Support',
+      isActive: true,
+      mustChangePassword: false,
+    },
+    {
+      id: 10,
+      name: 'Alex Thompson',
+      email: 'alex.t@toktickit.com',
+      passwordHash: initialPasswordHash,
+      role: 'IT_STAFF',
+      department: 'Systems Support',
+      isActive: true,
+      mustChangePassword: true, // For testing first login password change flow
+    },
+    {
+      id: 11,
+      name: 'Kevin Patel',
+      email: 'kevin.p@toktickit.com',
+      passwordHash: defaultPasswordHash,
+      role: 'IT_STAFF',
+      department: 'IT Infrastructure',
+      isActive: false,
+      mustChangePassword: false,
+    },
+
+    // Administrators (Active >= 1, 2 provided for safety testing)
+    {
+      id: 12,
+      name: 'Admin User',
+      email: 'admin@toktickit.com',
+      passwordHash: defaultPasswordHash,
+      role: 'ADMIN',
+      department: 'IT Administration',
+      isActive: true,
+      mustChangePassword: false,
+    },
+    {
+      id: 13,
+      name: 'System Administrator',
+      email: 'sysadmin@toktickit.com',
+      passwordHash: defaultPasswordHash,
+      role: 'ADMIN',
+      department: 'System Architecture',
+      isActive: true,
+      mustChangePassword: false,
     },
   ];
 
-  for (const req of requesters) {
-    await prisma.requesterUser.upsert({
-      where: { id: req.id },
+  for (const u of users) {
+    await prisma.user.upsert({
+      where: { id: u.id },
       update: {
-        name: req.name,
-        email: req.email,
-        department: req.department,
-        isActive: req.isActive,
+        name: u.name,
+        email: u.email,
+        passwordHash: u.passwordHash,
+        role: u.role,
+        department: u.department,
+        isActive: u.isActive,
+        mustChangePassword: u.mustChangePassword,
       },
-      create: req,
+      create: u,
     });
   }
 
-  // 4. Seed Initial Tickets for Testing Context
-  const existingTickets = await prisma.ticket.count();
-  if (existingTickets === 0) {
-    await prisma.ticket.create({
-      data: {
-        ticketNumber: 'TKT-2026-000101',
-        requesterId: 1, // Jennifer Anderson
-        categoryId: 2, // Hardware
-        relatedSystemId: 7, // Corporate Laptop
-        summary: 'Laptop battery drains quickly',
-        description:
-          'My laptop battery is draining much faster than usual even when the system is idle. This started happening after last week\'s Windows update.',
-        requestedPriority: 'MEDIUM',
-        itPriority: 'MEDIUM',
-        currentStatus: 'IN_PROGRESS',
-        ticketDate: new Date('2026-08-12T09:14:00Z'),
-        attachments: {
-          create: [
-            {
-              filename: 'attachment-1-battery-diag.pdf',
-              originalName: 'battery_diagnostics.pdf',
-              mimeType: 'application/pdf',
-              fileSize: 450120,
-              storagePath: 'uploads/attachment-1-battery-diag.pdf',
-              isRemoved: false,
-            },
-            {
-              filename: 'attachment-2-old-log.png',
-              originalName: 'system_log.png',
-              mimeType: 'image/png',
-              fileSize: 180300,
-              storagePath: 'uploads/attachment-2-old-log.png',
-              isRemoved: true,
-              removedAt: new Date('2026-08-13T10:00:00Z'),
-              removedReason: 'Uploaded wrong screenshot by mistake',
-            },
-          ],
+  // 4. Seed Realistic Tickets with Attachments, Comments, and Internal Notes
+  const ticketsData = [
+    {
+      id: 1,
+      ticketNumber: 'TKT-2026-000101',
+      requesterId: 1, // Supanut
+      ownerId: 7, // Michael Brown
+      categoryId: 2, // Hardware
+      relatedSystemId: 7, // Corporate Laptop
+      summary: 'Laptop battery drains quickly',
+      description:
+        'My laptop battery is draining much faster than usual even when the system is idle. This started happening after last week Windows update.',
+      requestedPriority: 'MEDIUM',
+      itPriority: 'MEDIUM',
+      currentStatus: 'IN_PROGRESS',
+      problemResolvedIndicated: false,
+      ticketDate: new Date('2026-08-12T09:14:00Z'),
+      attachments: [
+        {
+          filename: 'attachment-1-battery-diag.pdf',
+          originalName: 'battery_diagnostics.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 450120,
+          storagePath: 'uploads/attachment-1-battery-diag.pdf',
+          isRemoved: false,
         },
+        {
+          filename: 'attachment-2-old-log.png',
+          originalName: 'system_log.png',
+          mimeType: 'image/png',
+          fileSize: 180300,
+          storagePath: 'uploads/attachment-2-old-log.png',
+          isRemoved: true,
+          removedAt: new Date('2026-08-13T10:00:00Z'),
+          removedReason: 'Uploaded wrong screenshot by mistake',
+        },
+      ],
+      comments: [
+        {
+          authorId: 7, // Michael Brown (IT Staff)
+          content: 'Hello, we are investigating your battery diagnostic report. Please ensure BIOS is up to date.',
+          createdAt: new Date('2026-08-12T10:30:00Z'),
+        },
+        {
+          authorId: 1, // Supanut (Requester)
+          content: 'Thank you for the update. I verified BIOS is current. Let me know if you need more logs.',
+          createdAt: new Date('2026-08-12T11:45:00Z'),
+        },
+      ],
+      notes: [
+        {
+          authorId: 7, // Michael Brown (IT Staff)
+          content: 'Telemetry reveals background telemetry service spooler bug from latest OEM patch release.',
+          createdAt: new Date('2026-08-12T10:35:00Z'),
+        },
+      ],
+    },
+    {
+      id: 2,
+      ticketNumber: 'TKT-2026-000102',
+      requesterId: 1, // Supanut
+      ownerId: 8, // Sarah Johnson
+      categoryId: 4, // Network
+      relatedSystemId: 3, // VPN
+      summary: 'Cannot connect to VPN from home network',
+      description:
+        'Receiving authentication timeout error when establishing connection to campus VPN server.',
+      requestedPriority: 'HIGH',
+      itPriority: 'HIGH',
+      currentStatus: 'OPEN',
+      problemResolvedIndicated: false,
+      ticketDate: new Date('2026-08-15T11:30:00Z'),
+      attachments: [],
+      comments: [
+        {
+          authorId: 8, // Sarah Johnson
+          content: 'Checking gateway logs for your client certificate handshake.',
+          createdAt: new Date('2026-08-15T11:40:00Z'),
+        },
+      ],
+      notes: [
+        {
+          authorId: 8,
+          content: 'Secondary authentication radius pool had minor latency spike.',
+          createdAt: new Date('2026-08-15T11:42:00Z'),
+        },
+      ],
+    },
+    {
+      id: 3,
+      ticketNumber: 'TKT-2026-000103',
+      requesterId: 2, // Ikmie
+      ownerId: 9, // David Lee
+      categoryId: 1, // Account and Access
+      relatedSystemId: 4, // LEB2 App
+      summary: 'New employee LEB2 course access setup',
+      description:
+        'Need instructor permission granted for course CPE334 on LEB2 app platform.',
+      requestedPriority: 'LOW',
+      itPriority: 'LOW',
+      currentStatus: 'RESOLVED',
+      problemResolvedIndicated: true,
+      resolutionSummary: 'Instructor access provisioned on LEB2 course shell CPE334.',
+      ticketDate: new Date('2026-08-16T14:20:00Z'),
+      attachments: [],
+      comments: [
+        {
+          authorId: 9,
+          content: 'Permissions granted. Please verify access on leb2.kmutt.ac.th.',
+          createdAt: new Date('2026-08-16T15:00:00Z'),
+        },
+        {
+          authorId: 2,
+          content: 'Confirmed, course shell is now visible on dashboard. Thanks!',
+          createdAt: new Date('2026-08-16T15:10:00Z'),
+        },
+      ],
+      notes: [
+        {
+          authorId: 9,
+          content: 'Assigned role Teacher Assistant in section 1.',
+          createdAt: new Date('2026-08-16T14:55:00Z'),
+        },
+      ],
+    },
+    {
+      id: 4,
+      ticketNumber: 'TKT-2026-000104',
+      requesterId: 3, // Wichitchai
+      ownerId: null, // Unassigned
+      categoryId: 2, // Hardware
+      relatedSystemId: 6, // Printer
+      summary: 'Department printer keeps showing offline',
+      description:
+        'The shared HP LaserJet printer on 4th floor engineering building does not wake up from sleep mode.',
+      requestedPriority: 'MEDIUM',
+      itPriority: 'LOW',
+      currentStatus: 'NEW',
+      problemResolvedIndicated: false,
+      ticketDate: new Date('2026-08-17T08:15:00Z'),
+      attachments: [],
+      comments: [],
+      notes: [],
+    },
+    {
+      id: 5,
+      ticketNumber: 'TKT-2026-000105',
+      requesterId: 4, // Zeleng
+      ownerId: 7, // Michael Brown
+      categoryId: 3, // Software
+      relatedSystemId: 1, // Email
+      summary: 'Outlook desktop freezing intermittently',
+      description:
+        'Outlook client freezes for 30-60 seconds whenever sending emails with attachments.',
+      requestedPriority: 'HIGH',
+      itPriority: 'MEDIUM',
+      currentStatus: 'WAITING_FOR_REQUESTER',
+      problemResolvedIndicated: false,
+      ticketDate: new Date('2026-08-18T10:00:00Z'),
+      attachments: [],
+      comments: [
+        {
+          authorId: 7,
+          content: 'Could you try starting Outlook in safe mode by running outlook.exe /safe and let us know if the issue persists?',
+          createdAt: new Date('2026-08-18T11:00:00Z'),
+        },
+      ],
+      notes: [
+        {
+          authorId: 7,
+          content: 'Suspecting corrupt add-in (Antivirus email scanner).',
+          createdAt: new Date('2026-08-18T10:50:00Z'),
+        },
+      ],
+    },
+    {
+      id: 6,
+      ticketNumber: 'TKT-2026-000106',
+      requesterId: 5, // Jennifer
+      ownerId: 8, // Sarah Johnson
+      categoryId: 4, // Network
+      relatedSystemId: 2, // Campus Wi-Fi
+      summary: 'Slow Wi-Fi connection in library quiet study hall',
+      description:
+        'Connection speed drops below 1 Mbps consistently during peak afternoon hours.',
+      requestedPriority: 'MEDIUM',
+      itPriority: 'HIGH',
+      currentStatus: 'CLOSED',
+      problemResolvedIndicated: true,
+      resolutionSummary: 'Decongestion channel optimization performed on AP-LIB-04.',
+      ticketDate: new Date('2026-08-19T13:45:00Z'),
+      attachments: [],
+      comments: [],
+      notes: [],
+    },
+    {
+      id: 7,
+      ticketNumber: 'TKT-2026-000107',
+      requesterId: 1, // Supanut
+      ownerId: null, // Unassigned
+      categoryId: 1, // Account and Access
+      relatedSystemId: 5, // Grade Submission App
+      summary: 'Grade submission portal access expired',
+      description:
+        'Need semester access reactivated before midterm deadline.',
+      requestedPriority: 'URGENT',
+      itPriority: 'URGENT',
+      currentStatus: 'NEW',
+      problemResolvedIndicated: false,
+      ticketDate: new Date('2026-08-20T09:00:00Z'),
+      attachments: [],
+      comments: [],
+      notes: [],
+    },
+    {
+      id: 8,
+      ticketNumber: 'TKT-2026-000108',
+      requesterId: 2, // Ikmie
+      ownerId: 7, // Michael Brown
+      categoryId: 3, // Software
+      relatedSystemId: 7, // Corporate Laptop
+      summary: 'Software installation request for Docker Desktop',
+      description:
+        'Require administrator credentials or software portal authorization to install Docker Desktop for lab development.',
+      requestedPriority: 'LOW',
+      itPriority: 'LOW',
+      currentStatus: 'CANCELLED',
+      problemResolvedIndicated: false,
+      ticketDate: new Date('2026-08-21T15:30:00Z'),
+      attachments: [],
+      comments: [
+        {
+          authorId: 7,
+          content: 'Duplicate request. Handled under department bulk license deployment.',
+          createdAt: new Date('2026-08-21T16:00:00Z'),
+        },
+      ],
+      notes: [],
+    },
+  ];
+
+  for (const t of ticketsData) {
+    const { attachments, comments, notes, ...ticketFields } = t;
+
+    await prisma.ticket.upsert({
+      where: { id: ticketFields.id },
+      update: {
+        ticketNumber: ticketFields.ticketNumber,
+        requesterId: ticketFields.requesterId,
+        ownerId: ticketFields.ownerId,
+        categoryId: ticketFields.categoryId,
+        relatedSystemId: ticketFields.relatedSystemId,
+        summary: ticketFields.summary,
+        description: ticketFields.description,
+        requestedPriority: ticketFields.requestedPriority,
+        itPriority: ticketFields.itPriority,
+        currentStatus: ticketFields.currentStatus,
+        problemResolvedIndicated: ticketFields.problemResolvedIndicated,
+        resolutionSummary: ticketFields.resolutionSummary,
+        ticketDate: ticketFields.ticketDate,
       },
+      create: ticketFields,
     });
 
-    await prisma.ticket.create({
-      data: {
-        ticketNumber: 'TKT-2026-000102',
-        requesterId: 1, // Jennifer Anderson
-        categoryId: 4, // Network
-        relatedSystemId: 3, // VPN
-        summary: 'Cannot connect to VPN from home network',
-        description:
-          'Receiving authentication timeout error when establishing connection to campus VPN server.',
-        requestedPriority: 'HIGH',
-        itPriority: 'HIGH',
-        currentStatus: 'OPEN',
-        ticketDate: new Date('2026-08-15T11:30:00Z'),
-      },
-    });
+    if (attachments && attachments.length > 0) {
+      for (const att of attachments) {
+        const existingAtt = await prisma.attachment.findFirst({
+          where: { ticketId: ticketFields.id, filename: att.filename },
+        });
+        if (!existingAtt) {
+          await prisma.attachment.create({
+            data: {
+              ticketId: ticketFields.id,
+              ...att,
+            },
+          });
+        }
+      }
+    }
 
-    await prisma.ticket.create({
-      data: {
-        ticketNumber: 'TKT-2026-000103',
-        requesterId: 2, // Michael Brown
-        categoryId: 1, // Account and Access
-        relatedSystemId: 4, // LEB2 App
-        summary: 'New employee LEB2 course access setup',
-        description:
-          'Need instructor permission granted for course CPE334 on LEB2 app platform.',
-        requestedPriority: 'LOW',
-        itPriority: 'LOW',
-        currentStatus: 'RESOLVED',
-        ticketDate: new Date('2026-08-16T14:20:00Z'),
-      },
-    });
+    if (comments && comments.length > 0) {
+      for (const c of comments) {
+        const existingComment = await prisma.comment.findFirst({
+          where: { ticketId: ticketFields.id, content: c.content },
+        });
+        if (!existingComment) {
+          await prisma.comment.create({
+            data: {
+              ticketId: ticketFields.id,
+              ...c,
+            },
+          });
+        }
+      }
+    }
+
+    if (notes && notes.length > 0) {
+      for (const n of notes) {
+        const existingNote = await prisma.internalNote.findFirst({
+          where: { ticketId: ticketFields.id, content: n.content },
+        });
+        if (!existingNote) {
+          await prisma.internalNote.create({
+            data: {
+              ticketId: ticketFields.id,
+              ...n,
+            },
+          });
+        }
+      }
+    }
   }
 
-  console.log('Lab 2 database seed completed successfully.');
+  console.log('Lab 3 database seed completed successfully.');
 }
 
 main()

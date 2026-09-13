@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+import { API_BASE_URL } from '../config/api';
+
 export interface RequesterUser {
   id: number;
   name: string;
@@ -32,7 +34,7 @@ export const RequesterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:5000/api/requesters');
+      const response = await fetch(`${API_BASE_URL}/api/requesters`);
       if (!response.ok) {
         throw new Error('Failed to load development requesters');
       }
