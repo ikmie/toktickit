@@ -15,20 +15,20 @@ Developed for **CPE 334 Software Engineering**, following **Spec-Driven Developm
 
 ---
 
-## 🌟 Sprint Milestones & Feature Overview
+##  Sprint Milestones & Feature Overview
 
-### 🏷️ Lab 1: Full-Stack Architecture Starter
+###  Lab 1: Full-Stack Architecture Starter
 - Established Express + TypeScript API server & React + Vite frontend foundation.
 - Configured Prisma ORM with relational schema, migration pipeline, and database seeding.
 - Category listing API (`GET /api/categories`) and server health check endpoint (`GET /api/health`).
 
-### 🎫 Lab 2: Requester Portal & Ticketing Workflow
+###  Lab 2: Requester Portal & Ticketing Workflow
 - **Ticket Creation**: Form with category selection, sequential Ticket IDs (`TICK-YYYYMMDD-XXXX`), and automatic priority calculation based on Impact × Urgency matrix.
 - **Attachment Management**: Multi-file upload with MIME validation (PDF, PNG, JPEG), size constraints, file streaming download, and soft deletion.
 - **My Tickets Dashboard**: Search by ticket number or summary, status and priority filtering, and ticket detail view.
 - **Zen Green UI**: Modern, accessible interface with consistent component styles and responsive layouts.
 
-### 🛡️ Lab 3: Users, RBAC, IT Staff Queue & Admin Management
+###  Lab 3: Users, RBAC, IT Staff Queue & Admin Management
 - **Role-Based Access Control (RBAC)**: Secure JWT authentication + `bcryptjs` hashing for three distinct roles: `REQUESTER`, `IT_STAFF`, and `ADMIN`.
 - **First-Login Security (BR-02, BR-03)**: Mandatory password change enforcement with strict complexity rules (minimum 8 characters, uppercase, lowercase, number, and special character).
 - **Requester Enhancements**: Authenticated ticket ownership isolation, public comment thread with IT Staff, and "Problem Appears Resolved" indication (FR-07, FR-10).
@@ -39,7 +39,7 @@ Developed for **CPE 334 Software Engineering**, following **Spec-Driven Developm
 
 ---
 
-## 👥 Pre-Seeded Demo Accounts
+## Pre-Seeded Demo Accounts
 
 The database comes pre-seeded with realistic test accounts for all roles:
 
@@ -55,7 +55,7 @@ The database comes pre-seeded with realistic test accounts for all roles:
 
 ---
 
-## 🏗️ Repository Architecture
+##  Repository Architecture
 
 ```
 toktickit/
@@ -89,7 +89,7 @@ toktickit/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - **Node.js** v18.0.0 or higher
@@ -130,7 +130,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser to access To
 
 ---
 
-## 🧪 Testing & Quality Assurance
+##  Testing & Quality Assurance
 
 TokTickIT features **101 automated unit, component, and integration tests** passing with a 100% pass rate.
 
@@ -167,7 +167,7 @@ Detailed engineering documentation is available under [`docs/`](./docs/):
 
 ---
 
-## 👥 Contributors
+##  Contributors
 
 - **Lead Developer**: `ikmie`
 - **Peer Reviewer & Collaborator**: Wichitchai Suwanno ([`SinghLemonH`](https://github.com/SinghLemonH)) — Student ID: `67070503439`
