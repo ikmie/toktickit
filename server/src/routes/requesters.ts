@@ -7,8 +7,8 @@ const prisma = new PrismaClient();
 // GET /api/requesters - List active Development Requesters
 router.get('/', async (_req, res) => {
   try {
-    const requesters = await prisma.requesterUser.findMany({
-      where: { isActive: true },
+    const requesters = await prisma.user.findMany({
+      where: { role: 'REQUESTER', isActive: true },
       orderBy: { id: 'asc' },
       select: {
         id: true,
