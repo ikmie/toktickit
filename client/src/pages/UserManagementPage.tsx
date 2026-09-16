@@ -60,8 +60,11 @@ export const UserManagementPage: React.FC<UserManagementPageProps> = ({ onBack }
                 type="button"
                 className="btn btn-success px-4"
                 onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.history.pushState({}, '', '/');
+                    window.location.hash = '';
+                  }
                   if (onBack) onBack();
-                  window.location.hash = '';
                 }}
               >
                 &larr; Return to Dashboard

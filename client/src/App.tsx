@@ -12,29 +12,72 @@ import { StaffTicketQueuePage } from './pages/StaffTicketQueuePage';
 import { StaffTicketDetailPage } from './pages/StaffTicketDetailPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 
+function getRequestedTabFromUrl(): AppNavTab | null {
+  if (typeof window === 'undefined') return null;
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase();
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab')?.toLowerCase();
+
+  if (
+    path.includes('/admin') ||
+    path.includes('/user-management') ||
+    hash.includes('admin') ||
+    hash.includes('user-management') ||
+    tab === 'admin' ||
+    tab === 'user-management'
+  ) {
+    return 'user-management';
+  }
+
+  if (
+    path.includes('/staff') ||
+    path.includes('/queue') ||
+    hash.includes('staff') ||
+    hash.includes('queue') ||
+    tab === 'staff' ||
+    tab === 'staff-queue'
+  ) {
+    return 'staff-queue';
+  }
+
+  if (
+    path.includes('/create-ticket') ||
+    path.includes('/new-ticket') ||
+    hash.includes('create-ticket') ||
+    tab === 'create-ticket'
+  ) {
+    return 'create-ticket';
+  }
+
+  if (
+    path.includes('/my-tickets') ||
+    path.includes('/tickets') ||
+    hash.includes('my-tickets') ||
+    tab === 'my-tickets'
+  ) {
+    return 'my-tickets';
+  }
+
+  return null;
+}
+
 function AppContent() {
   const { user, isAuthenticated, mustChangePassword } = useAuth();
   const [activeTab, setActiveTab] = useState<AppNavTab>(() => {
-    const hash = typeof window !== 'undefined' ? window.location.hash.toLowerCase() : '';
-    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const tabParam = params?.get('tab')?.toLowerCase();
-    if (hash === '#admin' || hash === '#user-management' || tabParam === 'admin' || tabParam === 'user-management') {
-      return 'user-management';
-    }
-    if (hash === '#staff' || hash === '#staff-queue' || tabParam === 'staff' || tabParam === 'staff-queue') {
-      return 'staff-queue';
-    }
+    const requested = getRequestedTabFromUrl();
+    if (requested) return requested;
     if (user?.role === 'IT_STAFF') return 'staff-queue';
     if (user?.role === 'ADMIN') return 'user-management';
     return 'my-tickets';
   });
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
-  // Synchronize default tab on role changes or hash changes
+  // Synchronize default tab on role changes ONLY IF user did not explicitly request another tab in the URL
   useEffect(() => {
-    const hash = window.location.hash.toLowerCase();
-    if (hash === '#admin' || hash === '#user-management') {
-      setActiveTab('user-management');
+    const requested = getRequestedTabFromUrl();
+    if (requested) {
+      setActiveTab(requested);
       return;
     }
     if (user?.role === 'IT_STAFF') {
@@ -46,20 +89,20 @@ function AppContent() {
     }
   }, [user?.role]);
 
-  // Support direct URL hash navigation (e.g. #admin, #staff, #my-tickets)
+  // Support direct URL pathname/hash navigation (e.g. /admin/users, #admin, #staff, #my-tickets)
   useEffect(() => {
-    const handleHash = () => {
-      const h = window.location.hash.toLowerCase();
-      if (h === '#admin' || h === '#user-management' || h === '#/admin' || h === '#/admin/users') {
-        setActiveTab('user-management');
-      } else if (h === '#staff' || h === '#staff-queue' || h === '#/staff' || h === '#/staff/tickets') {
-        setActiveTab('staff-queue');
-      } else if (h === '#my-tickets' || h === '#/tickets') {
-        setActiveTab('my-tickets');
+    const handleUrlChange = () => {
+      const requested = getRequestedTabFromUrl();
+      if (requested) {
+        setActiveTab(requested);
       }
     };
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+    window.addEventListener('hashchange', handleUrlChange);
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlChange);
+      window.removeEventListener('popstate', handleUrlChange);
+    };
   }, []);
 
   // If user is not authenticated, render LoginPage
@@ -94,6 +137,17 @@ function AppContent() {
         activeTab={activeTab}
         setActiveTab={(tab) => {
           setActiveTab(tab);
+          if (typeof window !== 'undefined') {
+            if (tab === 'user-management') {
+              window.history.pushState({}, '', '/admin/users');
+            } else if (tab === 'staff-queue') {
+              window.history.pushState({}, '', '/staff/tickets');
+            } else if (tab === 'create-ticket') {
+              window.history.pushState({}, '', '/create-ticket');
+            } else {
+              window.history.pushState({}, '', '/');
+            }
+          }
           if (tab === 'my-tickets' || tab === 'staff-queue' || tab === 'user-management') {
             setSelectedTicketId(null);
           }
@@ -146,7 +200,10 @@ function AppContent() {
         {activeTab === 'user-management' && (
           <UserManagementPage
             onBack={() => {
-              window.location.hash = '';
+              if (typeof window !== 'undefined') {
+                window.history.pushState({}, '', '/');
+                window.location.hash = '';
+              }
               setActiveTab(user?.role === 'ADMIN' ? 'user-management' : 'my-tickets');
             }}
           />
