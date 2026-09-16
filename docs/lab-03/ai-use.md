@@ -23,6 +23,6 @@
 ---
 
 ## 3. My Reflection
-In Lab 3, developing a full-stack role-based ticketing platform with distinct permission levels demanded rigorous adherence to Spec-Driven Development (SDD). By leveraging the Antigravity AI agent to formalize the specification, API contracts, and business rules before writing code, we eliminated ambiguities regarding data access—such as ensuring that Internal Notes are strictly confidential and never leaked to Requesters.
+In lab part 3 making a full-stack  ticketing platform with clearly separated permission levels refered to Spec-Driven Development . By using the Antigravity AI agent to read and analyze the specification, API contracts, and business rules before writing code.
 
-Organizing the implementation into distinct, atomic feature branches enabled structured peer review with our collaborator on GitHub. Each feature was developed with focused unit and API tests, ensuring that expanding capabilities for IT Staff and Administrators did not cause regressions in the Requester workflows completed in Lab 2.
+Organizing the implement into feature branches enabled structured peer review with our SinghLemonH collaborator on GitHub. Each feature was developed with focused unit and API tests, ensuring that expanding capabilities for IT Staff and Administrators did not cause regressions in the Requester workflows completed in Lab 2.
