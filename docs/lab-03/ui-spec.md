@@ -171,3 +171,47 @@ TokTickIT reuses the Zen Green design system established in Lab 2, expanding it 
 | **Desktop (>= 992px)** | Full multi-column grids, comprehensive data tables, two-column detail views (metadata left, communications right), modals centered. |
 | **Tablet (768px - 991px)** | Queue table retains primary columns; Ticket Detail stacks operational controls above communications; User Management table wraps metadata cleanly. |
 | **Mobile (< 768px)** | Tables collapse into stacked cards; full-screen dialogs for modals; touch targets >= 44px; hamburger navigation for header on small devices. |
+
+---
+
+## 4. Visual Inspection & Responsive Checklist
+
+This checklist verifies the visual implementation of the Zen Green design system across all major Lab 3 screens (Login, Password Change, Requester Portal, IT Staff Queue, IT Staff Ticket Detail, and Administrator User Management) in accordance with **Rubric Part 9**.
+
+### 4.1 Design Consistency & Palette
+- [x] **Header Brand Color**: Primary Zen Green `#006B3C` consistently applied to the navigation app bar.
+- [x] **Surface Cards**: White `#FFFFFF` card surfaces with neutral 1px border (`#E2E8F0`) and subtle elevation (`box-shadow: 0 2px 4px rgba(0,0,0,0.04)`).
+- [x] **Background Harmony**: Main page background consistently set to neutral `#F5F7F6`.
+- [x] **Typography & Hierarchy**: Inter / sans-serif typography with high-contrast text (`#1A2E22`) and muted metadata labels (`#4A5568` / `#64748B`).
+
+### 4.2 Role-Based Navigation & Safe Feedback
+- [x] **Requester Navigation**: Authenticated Requesters see only permitted destinations (`My Tickets`, `Create Ticket`).
+- [x] **IT Staff Navigation**: Authenticated IT Staff see operational tabs (`Ticket Queue`).
+- [x] **Admin Navigation**: Administrators see system management tabs (`User Management`, `Ticket Queue`).
+- [x] **Forbidden Access Handling**: Non-administrators attempting to access `/admin/users` receive a clear, safe **403 Forbidden Access Denied** feedback card with no internal system disclosures.
+
+### 4.3 Badges & Visual Distinction
+- [x] **Ticket Status Badges**: All 8 statuses (`NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`) rendered with distinctive, WCAG-compliant colors.
+- [x] **Priority Badges**: IT Priority badges (`LOW`, `MEDIUM`, `HIGH`, `URGENT`) rendered with color-coded severity.
+- [x] **Role Badges**: Distinct role pills (`Requester` in sage green, `IT Staff` in soft blue, `Administrator` in light purple).
+- [x] **Confidential Internal Notes**: Styled with warm amber `#FFFBEB` background and amber border (`#F59E0B`), prominently badged `[CONFIDENTIAL - IT STAFF ONLY]`, visually distinct from Public Comments.
+
+### 4.4 Editable vs. Read-Only Fields
+- [x] **Read-Only Fields**: System-generated ticket numbers (`TICK-YYYYMMDD-XXXX`), creation dates, and requester identity shaded in neutral `#F0F4F1`.
+- [x] **Editable Fields**: Active input fields, textareas, and select menus rendered with white background, clear borders, and pointer cursors.
+
+### 4.5 Validation Placement & Safe Failures
+- [x] **Required Field Indicators**: Red asterisks (`*`) clearly displayed beside all mandatory input labels.
+- [x] **Inline Error Messages**: Validation feedback displayed directly beneath the relevant input control in high-contrast red (`#B91C1C`).
+- [x] **Safety Invariants**: Self-deactivation prevention (`BR-17`) and last active admin protection (`BR-18`) clearly surfaced via disabled actions and safe error alerts.
+- [x] **Safe Credential Errors**: Login failures use generic messages ("Invalid email or password") without exposing account existence.
+
+### 4.6 Focus & Accessibility
+- [x] **Focus Indicators**: Interactive elements show high-visibility green focus rings (`#0B7A46`) without overlapping content.
+- [x] **Touch Targets**: Buttons, filter chips, and pagination triggers maintain minimum touch targets &ge; 44px on mobile viewports.
+
+### 4.7 Clipping, Overlap & Horizontal Overflow
+- [x] **Desktop (1280px+)**: Data tables, operational sidebars, and modals render with ample whitespace and zero visual overlap.
+- [x] **Tablet (768px)**: Forms and filter bars wrap smoothly; tables preserve readable column widths without clipping.
+- [x] **Mobile (375px)**: Tables transform into responsive card stacks; modals fit viewport dimensions without horizontal scrolling (`overflow-x: hidden`).
+
