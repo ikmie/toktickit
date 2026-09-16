@@ -20,8 +20,61 @@ interface PaginationInfo {
   totalPages: number;
 }
 
-export const UserManagementPage: React.FC = () => {
+interface UserManagementPageProps {
+  onBack?: () => void;
+}
+
+export const UserManagementPage: React.FC<UserManagementPageProps> = ({ onBack }) => {
   const { user: currentAuthUser } = useAuth();
+
+  // Non-Admin Forbidden Access Safe Failure Screen (Rubric Part 8 & BR-16)
+  if (currentAuthUser && currentAuthUser.role !== 'ADMIN') {
+    return (
+      <div className="container py-5" data-testid="forbidden-access-container">
+        <div className="card shadow-sm border-0 mx-auto" style={{ maxWidth: '640px', borderRadius: '16px', overflow: 'hidden' }}>
+          <div className="card-header py-4 text-center text-white" style={{ backgroundColor: '#991B1B' }}>
+            <div className="display-4 mb-2">🛡️</div>
+            <h2 className="h4 fw-bold mb-1">403 Forbidden &bull; Access Denied</h2>
+            <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill mt-1">
+              Administrator Privileges Required
+            </span>
+          </div>
+          <div className="card-body p-4 text-center">
+            <div className="alert alert-danger d-flex align-items-center justify-content-center gap-2 mb-3" role="alert">
+              <span className="fw-semibold">Safe Failure Feedback:</span> Non-administrators cannot access User Management.
+            </div>
+            <p className="text-secondary mb-3">
+              Your account (<strong>{currentAuthUser.email}</strong>) is currently signed in with the role{' '}
+              <span className="badge bg-secondary">{currentAuthUser.role}</span>.
+            </p>
+            <div className="bg-light p-3 rounded-3 text-start mb-4 border">
+              <div className="fw-bold text-dark small mb-1">Access Control Policies (BR-01, BR-16):</div>
+              <ul className="small text-muted mb-0 ps-3">
+                <li>User management and governance operations are restricted exclusively to active Administrators.</li>
+                <li>Direct REST API queries to <code>/api/admin/users</code> reject non-administrative tokens with <code>403 Forbidden</code>.</li>
+                <li>No sensitive user records, password hashes, or directory contents are disclosed to unauthorized clients.</li>
+              </ul>
+            </div>
+            <div className="d-flex justify-content-center gap-2">
+              <button
+                type="button"
+                className="btn btn-success px-4"
+                onClick={() => {
+                  if (onBack) onBack();
+                  window.location.hash = '';
+                }}
+              >
+                &larr; Return to Dashboard
+              </button>
+            </div>
+          </div>
+          <div className="card-footer bg-light py-2 text-center text-muted small border-top">
+            Safe Failure Feedback &bull; TokTickIT RBAC Guard
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

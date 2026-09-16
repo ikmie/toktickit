@@ -117,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
               </button>
             )}
 
-            {isAdmin && (
+            {isAdmin ? (
               <button
                 onClick={() => setActiveTab('user-management')}
                 className={`nav-link btn btn-link text-decoration-none text-white px-2 py-1 ${
@@ -126,6 +126,21 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
                 data-testid="nav-user-management"
               >
                 User Management
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  window.location.hash = 'admin';
+                  setActiveTab('user-management');
+                }}
+                className={`nav-link btn btn-link text-decoration-none px-2 py-1 small ${
+                  activeTab === 'user-management' ? 'text-warning fw-bold border-bottom border-warning' : 'text-white-50'
+                }`}
+                style={{ fontSize: '0.85rem' }}
+                title="Attempt unauthorized access to Admin console (Demonstrates 403 Forbidden Safe Failure)"
+                data-testid="nav-admin-restricted"
+              >
+                🔒 Admin (Restricted)
               </button>
             )}
           </nav>

@@ -15,14 +15,28 @@ import { UserManagementPage } from './pages/UserManagementPage';
 function AppContent() {
   const { user, isAuthenticated, mustChangePassword } = useAuth();
   const [activeTab, setActiveTab] = useState<AppNavTab>(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash.toLowerCase() : '';
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const tabParam = params?.get('tab')?.toLowerCase();
+    if (hash === '#admin' || hash === '#user-management' || tabParam === 'admin' || tabParam === 'user-management') {
+      return 'user-management';
+    }
+    if (hash === '#staff' || hash === '#staff-queue' || tabParam === 'staff' || tabParam === 'staff-queue') {
+      return 'staff-queue';
+    }
     if (user?.role === 'IT_STAFF') return 'staff-queue';
     if (user?.role === 'ADMIN') return 'user-management';
     return 'my-tickets';
   });
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
-  // Synchronize default tab on role changes
+  // Synchronize default tab on role changes or hash changes
   useEffect(() => {
+    const hash = window.location.hash.toLowerCase();
+    if (hash === '#admin' || hash === '#user-management') {
+      setActiveTab('user-management');
+      return;
+    }
     if (user?.role === 'IT_STAFF') {
       setActiveTab('staff-queue');
     } else if (user?.role === 'ADMIN') {
@@ -31,6 +45,22 @@ function AppContent() {
       setActiveTab('my-tickets');
     }
   }, [user?.role]);
+
+  // Support direct URL hash navigation (e.g. #admin, #staff, #my-tickets)
+  useEffect(() => {
+    const handleHash = () => {
+      const h = window.location.hash.toLowerCase();
+      if (h === '#admin' || h === '#user-management' || h === '#/admin' || h === '#/admin/users') {
+        setActiveTab('user-management');
+      } else if (h === '#staff' || h === '#staff-queue' || h === '#/staff' || h === '#/staff/tickets') {
+        setActiveTab('staff-queue');
+      } else if (h === '#my-tickets' || h === '#/tickets') {
+        setActiveTab('my-tickets');
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   // If user is not authenticated, render LoginPage
   if (!isAuthenticated) {
@@ -113,7 +143,14 @@ function AppContent() {
           />
         )}
 
-        {activeTab === 'user-management' && <UserManagementPage />}
+        {activeTab === 'user-management' && (
+          <UserManagementPage
+            onBack={() => {
+              window.location.hash = '';
+              setActiveTab(user?.role === 'ADMIN' ? 'user-management' : 'my-tickets');
+            }}
+          />
+        )}
       </main>
 
       {/* Simple Zen Green Footer */}

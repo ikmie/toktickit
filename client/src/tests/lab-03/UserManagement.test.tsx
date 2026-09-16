@@ -205,4 +205,28 @@ describe('Lab 03 - UserManagementPage Component Tests', () => {
       );
     });
   });
+
+  it('renders 403 Forbidden safe failure screen for non-administrator users', async () => {
+    localStorage.setItem(
+      'toktickit_user',
+      JSON.stringify({
+        id: 1,
+        name: 'Supanut Sopha',
+        email: 'supanut.soph@kmutt.ac.th',
+        role: 'REQUESTER',
+        mustChangePassword: false,
+      })
+    );
+
+    render(
+      <AuthProvider>
+        <UserManagementPage />
+      </AuthProvider>
+    );
+
+    expect(screen.getByTestId('forbidden-access-container')).toBeInTheDocument();
+    expect(screen.getByText(/403 Forbidden • Access Denied/i)).toBeInTheDocument();
+    expect(screen.getByText(/Administrator Privileges Required/i)).toBeInTheDocument();
+    expect(screen.getByText(/Non-administrators cannot access User Management/i)).toBeInTheDocument();
+  });
 });
