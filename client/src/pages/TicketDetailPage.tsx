@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRequester } from '../context/RequesterContext';
 import { API_BASE_URL } from '../config/api';
+import { ActionsTakenSection } from '../components/ActionsTakenSection';
 
 interface AttachmentItem {
   id: number;
@@ -556,6 +557,9 @@ export const TicketDetailPage: React.FC<TicketDetailPageProps> = ({ ticketId, on
           )}
         </div>
       </div>
+
+      {/* Actions Taken Section (Read-Only for Requesters) */}
+      <ActionsTakenSection ticketId={ticket.id} readOnly={true} />
 
       {/* Public Comments Section */}
       <div className="surface-card p-4 mb-4" data-testid="public-comments-section">
