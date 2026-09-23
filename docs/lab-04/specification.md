@@ -209,13 +209,13 @@ Refer to [ui-spec.md](file:///d:/CPE/3-1/Software%20En/Lab%201/docs/lab-04/ui-sp
 ### 8.1 Prisma Schema Increment
 ```prisma
 model ActionTaken {
-  id               String   @id @default(cuid())
-  ticketId         String
+  id               Int      @id @default(autoincrement())
+  ticketId         Int
   ticket           Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   actionDateTime   DateTime @default(now())
   description      String
   result           String
-  performedById    String
+  performedById    Int
   performedBy      User     @relation("ActionsPerformed", fields: [performedById], references: [id])
   followUpRequired Boolean  @default(false)
   followUpNote     String?
@@ -230,8 +230,8 @@ model ActionTaken {
 ```
 
 ### 8.2 Database Design Decisions Justification (Required by Section 5.1)
-1. **Decision 1: CUID Identifier & Indexing Strategy**:
-   - `ActionTaken` uses standard CUID strings consistent with `Ticket` and `User` models to prevent collision in distributed environments and avoid auto-increment enumeration leaks.
+1. **Decision 1: Schema Consistency & Indexing Strategy**:
+   - `ActionTaken` uses an autoincrement integer primary key (`Int @id @default(autoincrement())`) and integer foreign keys (`ticketId Int`, `performedById Int`) matching the existing `Ticket`, `User`, `Comment`, and `InternalNote` tables.
    - Non-clustered secondary indexes are established on `ticketId` (to ensure high-performance $O(1)$ relational lookups on Ticket Detail views), `performedById` (for fast author aggregation), and `actionDateTime` (for dashboard timeline querying).
 2. **Decision 2: Foreign Key Relation & Assignee Independence**:
    - `performedById` references `User(id)` with a dedicated relation `"ActionsPerformed"`, decoupling the person executing a technical action from the primary ticket coordinator (`ticket.ownerId`). This enforces `BR-02` at the database level while guaranteeing referential integrity.
