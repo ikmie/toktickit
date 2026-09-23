@@ -179,6 +179,12 @@ router.get('/tickets/:id', async (req: Request, res: Response) => {
             author: { select: { id: true, name: true, role: true } },
           },
         },
+        actions: {
+          orderBy: { actionDateTime: 'asc' },
+          include: {
+            performedBy: { select: { id: true, name: true, email: true, role: true } },
+          },
+        },
       },
     });
 
@@ -330,7 +336,7 @@ router.patch('/tickets/:id/status', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid Ticket ID' });
     }
 
-    const { status, resolutionSummary } = req.body;
+    const { status, resolutionSummary, expectedUpdatedAt } = req.body;
     if (!status) {
       return res.status(400).json({ error: 'Validation Error', message: 'Target status is required.' });
     }
@@ -343,6 +349,18 @@ router.patch('/tickets/:id/status', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Not Found', message: 'Ticket does not exist' });
     }
 
+    // BR-14 / AC-15: Concurrency / Stale Update detection
+    if (expectedUpdatedAt) {
+      const clientTime = new Date(expectedUpdatedAt).getTime();
+      const serverTime = new Date(ticket.updatedAt).getTime();
+      if (Math.abs(clientTime - serverTime) > 1000) {
+        return res.status(409).json({
+          error: 'Conflict',
+          message: 'This ticket has been modified by another user. Please refresh and review current state.',
+        });
+      }
+    }
+
     const current = ticket.currentStatus;
     const allowed = PERMITTED_TRANSITIONS[current] || [];
 
@@ -352,6 +370,21 @@ router.patch('/tickets/:id/status', async (req: Request, res: Response) => {
         error: 'Invalid Transition',
         message: `Status transition from ${current} to ${status} is not permitted. Allowed transitions: ${allowed.join(', ') || 'none'}`,
       });
+    }
+
+    // BR-09 / BR-10 / AC-05: RESOLUTION GATE
+    // A ticket CANNOT transition to RESOLVED without at least one recorded Action Taken
+    if (status === 'RESOLVED') {
+      const actionCount = await prisma.actionTaken.count({
+        where: { ticketId },
+      });
+
+      if (actionCount === 0) {
+        return res.status(400).json({
+          error: 'ResolutionGateBlocked',
+          message: 'Cannot resolve ticket without at least one recorded Action Taken.',
+        });
+      }
     }
 
     const updateData: any = { currentStatus: status };

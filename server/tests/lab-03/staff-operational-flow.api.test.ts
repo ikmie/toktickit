@@ -102,6 +102,15 @@ describe('Lab 03 - E2E IT Staff Operational Flow', () => {
     expect(detailRes.body.problemResolvedIndicated).toBe(true);
     expect(detailRes.body.notes.length).toBeGreaterThanOrEqual(1);
 
+    // 9b. IT Staff records an Action Taken before resolving (Lab 4 Resolution Gate)
+    await request(app)
+      .post(`/api/tickets/${ticketId}/actions`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({
+        description: 'Completed investigation and fixed issue.',
+        result: 'Verified working with user.',
+      });
+
     // 10. IT Staff transitions status to RESOLVED with resolution summary (BR-14)
     const statusRes = await request(app)
       .patch(`/api/staff/tickets/${ticketId}/status`)
