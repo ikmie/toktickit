@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRequester } from '../context/RequesterContext';
 
 export type AppNavTab =
+  | 'dashboard'
   | 'my-tickets'
   | 'create-ticket'
   | 'ticket-detail'
@@ -59,11 +60,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
         {/* App Logo & Brand */}
         <div className="d-flex align-items-center gap-3">
           <button
-            onClick={() => {
-              if (isAdmin) setActiveTab('user-management');
-              else if (isStaff) setActiveTab('staff-queue');
-              else setActiveTab('my-tickets');
-            }}
+            onClick={() => setActiveTab('dashboard')}
             className="navbar-brand btn btn-link p-0 text-decoration-none text-white fw-bold fs-4 d-flex align-items-center gap-2"
           >
             <svg
@@ -82,6 +79,17 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
 
           {/* Role-Specific Navigation */}
           <nav className="d-flex gap-2">
+            {/* Common Dashboard Nav Button */}
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`nav-link btn btn-link text-decoration-none text-white px-2 py-1 ${
+                activeTab === 'dashboard' ? 'fw-bold border-bottom border-white' : 'opacity-75'
+              }`}
+              data-testid="nav-dashboard"
+            >
+              Dashboard
+            </button>
+
             {isRequester && (
               <>
                 <button

@@ -11,6 +11,8 @@ import { TicketDetailPage } from './pages/TicketDetailPage';
 import { StaffTicketQueuePage } from './pages/StaffTicketQueuePage';
 import { StaffTicketDetailPage } from './pages/StaffTicketDetailPage';
 import { UserManagementPage } from './pages/UserManagementPage';
+import { RequesterDashboardPage } from './pages/RequesterDashboardPage';
+import { StaffDashboardPage } from './pages/StaffDashboardPage';
 
 function getRequestedTabFromUrl(): AppNavTab | null {
   if (typeof window === 'undefined') return null;
@@ -18,6 +20,14 @@ function getRequestedTabFromUrl(): AppNavTab | null {
   const hash = window.location.hash.toLowerCase();
   const params = new URLSearchParams(window.location.search);
   const tab = params.get('tab')?.toLowerCase();
+
+  if (
+    path.includes('/dashboard') ||
+    hash.includes('dashboard') ||
+    tab === 'dashboard'
+  ) {
+    return 'dashboard';
+  }
 
   if (
     path.includes('/admin') ||
@@ -67,11 +77,11 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<AppNavTab>(() => {
     const requested = getRequestedTabFromUrl();
     if (requested) return requested;
-    if (user?.role === 'IT_STAFF') return 'staff-queue';
-    if (user?.role === 'ADMIN') return 'user-management';
-    return 'my-tickets';
+    return 'dashboard';
   });
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [queueFilter, setQueueFilter] = useState<{ status?: string; ownership?: string; priority?: string } | undefined>(undefined);
+  const [myTicketsFilter, setMyTicketsFilter] = useState<string | undefined>(undefined);
 
   // Synchronize default tab on role changes ONLY IF user did not explicitly request another tab in the URL
   useEffect(() => {
@@ -80,16 +90,10 @@ function AppContent() {
       setActiveTab(requested);
       return;
     }
-    if (user?.role === 'IT_STAFF') {
-      setActiveTab('staff-queue');
-    } else if (user?.role === 'ADMIN') {
-      setActiveTab('user-management');
-    } else if (user?.role === 'REQUESTER') {
-      setActiveTab('my-tickets');
-    }
+    setActiveTab('dashboard');
   }, [user?.role]);
 
-  // Support direct URL pathname/hash navigation (e.g. /admin/users, #admin, #staff, #my-tickets)
+  // Support direct URL pathname/hash navigation (e.g. /admin/users, #admin, #staff, #my-tickets, #dashboard)
   useEffect(() => {
     const handleUrlChange = () => {
       const requested = getRequestedTabFromUrl();
@@ -144,11 +148,13 @@ function AppContent() {
               window.history.pushState({}, '', '/staff/tickets');
             } else if (tab === 'create-ticket') {
               window.history.pushState({}, '', '/create-ticket');
+            } else if (tab === 'dashboard') {
+              window.history.pushState({}, '', '/dashboard');
             } else {
               window.history.pushState({}, '', '/');
             }
           }
-          if (tab === 'my-tickets' || tab === 'staff-queue' || tab === 'user-management') {
+          if (tab === 'my-tickets' || tab === 'staff-queue' || tab === 'user-management' || tab === 'dashboard') {
             setSelectedTicketId(null);
           }
         }}
@@ -159,10 +165,34 @@ function AppContent() {
 
       {/* Main View Area */}
       <main className="flex-grow-1">
+        {activeTab === 'dashboard' && (
+          user?.role === 'IT_STAFF' || user?.role === 'ADMIN' ? (
+            <StaffDashboardPage
+              onSelectTicket={handleSelectStaffTicket}
+              onNavigateToQueue={(filters) => {
+                setQueueFilter(filters);
+                setActiveTab('staff-queue');
+              }}
+              onCreateTicket={() => setActiveTab('create-ticket')}
+              onNavigateToUserManagement={() => setActiveTab('user-management')}
+            />
+          ) : (
+            <RequesterDashboardPage
+              onSelectTicket={handleSelectTicket}
+              onCreateTicket={() => setActiveTab('create-ticket')}
+              onViewMyTickets={(filter) => {
+                setMyTicketsFilter(filter === 'OPEN_ALL' ? undefined : filter);
+                setActiveTab('my-tickets');
+              }}
+            />
+          )
+        )}
+
         {activeTab === 'my-tickets' && (
           <MyTicketsPage
             onSelectTicket={handleSelectTicket}
             onCreateTicket={() => setActiveTab('create-ticket')}
+            initialStatus={myTicketsFilter}
           />
         )}
 
@@ -184,7 +214,12 @@ function AppContent() {
         )}
 
         {activeTab === 'staff-queue' && (
-          <StaffTicketQueuePage onSelectTicket={handleSelectStaffTicket} />
+          <StaffTicketQueuePage
+            onSelectTicket={handleSelectStaffTicket}
+            initialStatus={queueFilter?.status}
+            initialOwnership={queueFilter?.ownership}
+            initialPriority={queueFilter?.priority}
+          />
         )}
 
         {activeTab === 'staff-ticket-detail' && selectedTicketId !== null && (
@@ -204,7 +239,7 @@ function AppContent() {
                 window.history.pushState({}, '', '/');
                 window.location.hash = '';
               }
-              setActiveTab(user?.role === 'ADMIN' ? 'user-management' : 'my-tickets');
+              setActiveTab(user?.role === 'ADMIN' ? 'user-management' : 'dashboard');
             }}
           />
         )}
@@ -212,7 +247,7 @@ function AppContent() {
 
       {/* Simple Zen Green Footer */}
       <footer className="py-3 text-center text-muted small border-top mt-auto bg-white">
-        TokTickIT &bull; CPE 334 Introduction to Software Engineering &bull; Lab 3 Enterprise
+        TokTickIT &bull; CPE 334 Introduction to Software Engineering &bull; Lab 4 Service-Desk Increment
       </footer>
     </div>
   );
