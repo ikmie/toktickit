@@ -8,6 +8,8 @@ import attachmentsRouter from './routes/attachments';
 import authRouter from './routes/auth';
 import staffRouter from './routes/staff';
 import adminRouter from './routes/admin';
+import actionsRouter from './routes/actions';
+import dashboardsRouter from './routes/dashboards';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -33,8 +35,10 @@ app.get('/api/categories', async (_req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/dashboards', dashboardsRouter);
 app.use('/api/requesters', requestersRouter);
 app.use('/api/related-systems', relatedSystemsRouter);
+app.use('/api/tickets/:id/actions', actionsRouter);
 app.use('/api/tickets', ticketsRouter);
 app.use('/api/staff', staffRouter);
 app.use('/api/admin', adminRouter);
