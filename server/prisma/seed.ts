@@ -253,6 +253,28 @@ async function main() {
           createdAt: new Date('2026-08-12T10:35:00Z'),
         },
       ],
+      actions: [
+        {
+          id: 1,
+          actionDateTime: new Date('2026-08-12T10:15:00Z'),
+          description: 'Conducted hardware diagnostic test and inspected battery discharge rates.',
+          result: 'Battery wear level measured at 38%; background power drain identified in OEM battery monitor.',
+          performedById: 7, // Michael Brown (Ticket Owner)
+          followUpRequired: true,
+          followUpNote: 'Apply firmware update KB449210 and monitor discharge overnight.',
+          attachmentNotes: 'attachment-1-battery-diag.pdf',
+        },
+        {
+          id: 2,
+          actionDateTime: new Date('2026-08-13T09:00:00Z'),
+          description: 'Applied OEM BIOS firmware update to version 1.14 and calibrated power regulator.',
+          result: 'Discharge rate stabilized at 6% per hour under typical workload.',
+          performedById: 9, // David Lee (Different IT Staff than owner Michael Brown - tests BR-02)
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: null,
+        },
+      ],
     },
     {
       id: 2,
@@ -282,6 +304,18 @@ async function main() {
           authorId: 8,
           content: 'Secondary authentication radius pool had minor latency spike.',
           createdAt: new Date('2026-08-15T11:42:00Z'),
+        },
+      ],
+      actions: [
+        {
+          id: 3,
+          actionDateTime: new Date('2026-08-15T11:45:00Z'),
+          description: 'Inspected RADIUS server auth gateway logs and re-issued client TLS certificate.',
+          result: 'Client certificate re-synchronized with KMUTT active directory.',
+          performedById: 8, // Sarah Johnson
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: null,
         },
       ],
     },
@@ -321,6 +355,18 @@ async function main() {
           createdAt: new Date('2026-08-16T14:55:00Z'),
         },
       ],
+      actions: [
+        {
+          id: 4,
+          actionDateTime: new Date('2026-08-16T14:45:00Z'),
+          description: 'Configured role-based access control permissions on LEB2 database for course CPE334.',
+          result: 'Teacher Assistant permissions successfully provisioned.',
+          performedById: 9, // David Lee
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: null,
+        },
+      ],
     },
     {
       id: 4,
@@ -340,6 +386,7 @@ async function main() {
       attachments: [],
       comments: [],
       notes: [],
+      actions: [], // 0 actions - for testing resolution gate block
     },
     {
       id: 5,
@@ -371,6 +418,18 @@ async function main() {
           createdAt: new Date('2026-08-18T10:50:00Z'),
         },
       ],
+      actions: [
+        {
+          id: 5,
+          actionDateTime: new Date('2026-08-18T10:45:00Z'),
+          description: 'Analyzed Outlook process crash dumps and disabled malfunctioning 3rd-party antivirus add-in.',
+          result: 'Requested user to verify behavior in safe mode.',
+          performedById: 7, // Michael Brown
+          followUpRequired: true,
+          followUpNote: 'Awaiting confirmation from user after 24 hours of normal usage.',
+          attachmentNotes: null,
+        },
+      ],
     },
     {
       id: 6,
@@ -391,6 +450,18 @@ async function main() {
       attachments: [],
       comments: [],
       notes: [],
+      actions: [
+        {
+          id: 6,
+          actionDateTime: new Date('2026-08-19T14:00:00Z'),
+          description: 'Re-allocated 5GHz Wi-Fi channels on AP-LIB-04 and reduced co-channel interference.',
+          result: 'Throughput restored to 85 Mbps across library study hall.',
+          performedById: 8, // Sarah Johnson
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: null,
+        },
+      ],
     },
     {
       id: 7,
@@ -410,6 +481,7 @@ async function main() {
       attachments: [],
       comments: [],
       notes: [],
+      actions: [], // 0 actions - for testing resolution gate block
     },
     {
       id: 8,
@@ -435,11 +507,42 @@ async function main() {
         },
       ],
       notes: [],
+      actions: [],
+    },
+    {
+      id: 9,
+      ticketNumber: 'TKT-2026-000109',
+      requesterId: 5, // Jennifer
+      ownerId: 7, // Michael Brown
+      categoryId: 3, // Software
+      relatedSystemId: 1, // Email
+      summary: 'Email spam filter blocking legitimate KMUTT announcements',
+      description: 'Faculty notices from dean office are being flagged as spam.',
+      requestedPriority: 'HIGH',
+      itPriority: 'HIGH',
+      currentStatus: 'REOPENED',
+      problemResolvedIndicated: false,
+      ticketDate: new Date('2026-08-22T08:00:00Z'),
+      attachments: [],
+      comments: [],
+      notes: [],
+      actions: [
+        {
+          id: 7,
+          actionDateTime: new Date('2026-08-22T08:30:00Z'),
+          description: 'Reviewed spam filter false positive rules and whitelisted sender domain.',
+          result: 'Rule modified on mail relay.',
+          performedById: 7, // Michael Brown
+          followUpRequired: true,
+          followUpNote: 'Verify next campus newsletter delivery.',
+          attachmentNotes: null,
+        },
+      ],
     },
   ];
 
   for (const t of ticketsData) {
-    const { attachments, comments, notes, ...ticketFields } = t;
+    const { attachments, comments, notes, actions, ...ticketFields } = t;
 
     await prisma.ticket.upsert({
       where: { id: ticketFields.id },
@@ -508,9 +611,38 @@ async function main() {
         }
       }
     }
+
+    if (actions && actions.length > 0) {
+      for (const act of actions) {
+        await prisma.actionTaken.upsert({
+          where: { id: act.id },
+          update: {
+            ticketId: ticketFields.id,
+            actionDateTime: act.actionDateTime,
+            description: act.description,
+            result: act.result,
+            performedById: act.performedById,
+            followUpRequired: act.followUpRequired,
+            followUpNote: act.followUpNote,
+            attachmentNotes: act.attachmentNotes,
+          },
+          create: {
+            id: act.id,
+            ticketId: ticketFields.id,
+            actionDateTime: act.actionDateTime,
+            description: act.description,
+            result: act.result,
+            performedById: act.performedById,
+            followUpRequired: act.followUpRequired,
+            followUpNote: act.followUpNote,
+            attachmentNotes: act.attachmentNotes,
+          },
+        });
+      }
+    }
   }
 
-  console.log('Lab 3 database seed completed successfully.');
+  console.log('Lab 4 database seed completed successfully with Actions Taken.');
 }
 
 main()
