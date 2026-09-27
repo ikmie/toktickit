@@ -22,9 +22,10 @@ interface TicketItem {
 interface MyTicketsPageProps {
   onSelectTicket: (ticketId: number) => void;
   onCreateTicket: () => void;
+  initialStatus?: string;
 }
 
-export const MyTicketsPage: React.FC<MyTicketsPageProps> = ({ onSelectTicket, onCreateTicket }) => {
+export const MyTicketsPage: React.FC<MyTicketsPageProps> = ({ onSelectTicket, onCreateTicket, initialStatus }) => {
   const { selectedRequester } = useRequester();
 
   const [tickets, setTickets] = useState<TicketItem[]>([]);
@@ -35,7 +36,7 @@ export const MyTicketsPage: React.FC<MyTicketsPageProps> = ({ onSelectTicket, on
   const [search, setSearch] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [priority, setPriority] = useState<string>('');
-  const [status, setStatus] = useState<string>('');
+  const [status, setStatus] = useState<string>(initialStatus || '');
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
