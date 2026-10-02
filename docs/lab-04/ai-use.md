@@ -23,8 +23,8 @@
 ---
 
 ## 3. My Reflection
-In Lab 4, completing the TokTickIT service-desk system highlighted the immense value of Spec-Driven Development (SDD) when managing intricate business invariants. By utilizing the Antigravity AI specification agent to formalize the **Resolution Gate (BR-09)** and the **parent-child Actions Taken model (BR-01, BR-02)** before writing any code, our team eliminated ambiguity regarding role boundaries and state transitions.
+In Lab 4, completing the TokTickIT service-desk system usiung Spec-Driven Development (SDD) to make as the buisness requirement. By using the Antigravity AI flash model specification agent to formalize the **Resolution Gate (BR-09)** and the **parent-child Actions Taken model (BR-01, BR-02)** before writing any code
 
-The separation between the specification agent and coding agent allowed us to treat the contracts in `docs/lab-04/` as an immutable source of truth. The coding agent could then methodically generate the database schema, backend REST endpoints, and frontend components in structured feature branches, verifying each increment against the predefined Acceptance Criteria.
+The separation between the specification agent and coding agent allowed us to run the contracts in `docs/lab-04/` clearly. The coding agent could then methodically generate the database schema, backend rest endpoints, and frontend components in structured feature branches, verifying each increment against the predefined Acceptance Criteria.
 
-Furthermore, conducting structured peer reviews with our collaborator **SinghLemonH (Wichitchai Suwanno)** ensured that each increment was thoroughly scrutinized for backward compatibility. As a result, the entire application—from authentication and user management in Lab 3 to Actions Taken and operational dashboards in Lab 4—works as a unified, robust, and accessible enterprise solution under the Zen Green design system.
+structured peer reviews with our collaborator **SinghLemonH (Wichitchai Suwanno)** ensured that each increment was prepared for backward compatibility. As a result, the entire application—from authentication and user management in Lab 3 to Actions Taken and operational dashboards in Lab 4—works as a unified, robust, and accessible  solution under the Zen Green design system.
