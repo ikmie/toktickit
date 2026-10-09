@@ -12,10 +12,10 @@ describe('Lab 03 - E2E Authentication & Password Change Flow', () => {
   const newStrongPassword = 'BrandNew@Secret2026!';
 
   beforeAll(async () => {
-    // Reset Alex Thompson (User 10) to mustChangePassword: true with initial temp password
+    // Reset Alex Thompson to mustChangePassword: true with initial temp password
     const hashed = await hashPassword(initialTempPassword);
     await prisma.user.update({
-      where: { id: 10 },
+      where: { email: testEmail },
       data: {
         passwordHash: hashed,
         mustChangePassword: true,
