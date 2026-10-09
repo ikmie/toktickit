@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { API_BASE_URL } from '../config/api';
+import { ActionsTakenSection, type ActionTakenItem } from '../components/ActionsTakenSection';
 
 interface AttachmentItem {
   id: number;
@@ -60,6 +61,7 @@ interface StaffTicketDetail {
   attachments: AttachmentItem[];
   comments: CommentItem[];
   notes: InternalNoteItem[];
+  actions?: ActionTakenItem[];
 }
 
 interface StaffTicketDetailPageProps {
@@ -225,7 +227,13 @@ export const StaffTicketDetailPage: React.FC<StaffTicketDetailPageProps> = ({ ti
   };
 
   const handleStatusUpdate = async () => {
-    if (!selectedStatus) return;
+    if (!selectedStatus || !ticket) return;
+
+    if (selectedStatus === 'RESOLVED' && (!ticket.actions || ticket.actions.length === 0)) {
+      alert('Cannot resolve ticket without at least one recorded Action Taken.');
+      return;
+    }
+
     setUpdatingStatus(true);
     setActionSuccess(null);
     try {
@@ -238,6 +246,7 @@ export const StaffTicketDetailPage: React.FC<StaffTicketDetailPageProps> = ({ ti
         body: JSON.stringify({
           status: selectedStatus,
           resolutionSummary: resolutionSummary.trim() || undefined,
+          expectedUpdatedAt: ticket.updatedAt,
         }),
       });
       if (res.ok) {
@@ -557,14 +566,20 @@ export const StaffTicketDetailPage: React.FC<StaffTicketDetailPageProps> = ({ ti
 
                   {selectedStatus === 'RESOLVED' && (
                     <div className="mt-2">
-                      <textarea
-                        className="form-control form-control-sm"
-                        placeholder="Resolution summary / actions taken (optional)..."
-                        rows={2}
-                        value={resolutionSummary}
-                        onChange={(e) => setResolutionSummary(e.target.value)}
-                        data-testid="staff-resolution-summary"
-                      />
+                      {(!ticket.actions || ticket.actions.length === 0) ? (
+                        <div className="alert alert-warning py-2 px-3 small mb-0" data-testid="resolution-gate-warning">
+                          ⚠️ <strong>Resolution Gate:</strong> At least one Action Taken must be recorded before this ticket can be marked as Resolved.
+                        </div>
+                      ) : (
+                        <textarea
+                          className="form-control form-control-sm"
+                          placeholder="Resolution summary / actions taken (optional)..."
+                          rows={2}
+                          value={resolutionSummary}
+                          onChange={(e) => setResolutionSummary(e.target.value)}
+                          data-testid="staff-resolution-summary"
+                        />
+                      )}
                     </div>
                   )}
                 </>
@@ -573,6 +588,13 @@ export const StaffTicketDetailPage: React.FC<StaffTicketDetailPageProps> = ({ ti
           </div>
         </div>
       </div>
+
+      {/* Actions Taken Section (Lab 4) */}
+      <ActionsTakenSection
+        ticketId={ticket.id}
+        readOnly={false}
+        onActionsUpdated={fetchTicket}
+      />
 
       {/* Tabs Navigation: Public Comments vs Internal Notes vs Attachments */}
       <ul className="nav nav-pills mb-3 gap-2" role="tablist">

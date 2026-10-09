@@ -35,9 +35,17 @@ interface PaginationInfo {
 
 interface StaffTicketQueuePageProps {
   onSelectTicket: (id: number) => void;
+  initialStatus?: string;
+  initialOwnership?: string;
+  initialPriority?: string;
 }
 
-export const StaffTicketQueuePage: React.FC<StaffTicketQueuePageProps> = ({ onSelectTicket }) => {
+export const StaffTicketQueuePage: React.FC<StaffTicketQueuePageProps> = ({
+  onSelectTicket,
+  initialStatus,
+  initialOwnership,
+  initialPriority,
+}) => {
   const [tickets, setTickets] = useState<TicketQueueItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -46,9 +54,9 @@ export const StaffTicketQueuePage: React.FC<StaffTicketQueuePageProps> = ({ onSe
   // Filter & Search states
   const [search, setSearch] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
-  const [itPriority, setItPriority] = useState<string>('');
-  const [currentStatus, setCurrentStatus] = useState<string>('');
-  const [ownership, setOwnership] = useState<string>('all');
+  const [itPriority, setItPriority] = useState<string>(initialPriority || '');
+  const [currentStatus, setCurrentStatus] = useState<string>(initialStatus || '');
+  const [ownership, setOwnership] = useState<string>(initialOwnership || 'all');
 
   // Sorting & Pagination
   const [sortBy, setSortBy] = useState<string>('ticketDate');
